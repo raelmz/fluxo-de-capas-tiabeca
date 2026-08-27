@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tia Beca · Fluxo de Capas</title>
+<style>
+  :root{
+    --areia: #f3ead9;
+    --areia-escura: #e9dcc3;
+    --tinta: #3b2f26;
+    --tinta-suave: #6b5b4c;
+    --laranja: #c1673b;
+    --laranja-escuro: #9c4f2c;
+    --verde-pata: #6f7a52;
+    --linha: #d9c9ab;
+    --branco-papel: #fbf7ee;
+    --sombra: rgba(59, 47, 38, 0.12);
+    --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    --font-body: 'Sono', 'Avenir Next', system-ui, sans-serif;
+    --font-hand: 'Caveat', cursive;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Caveat:wght@600;700&family=Sono:wght@400;500;700&display=swap');
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, rgba(193,103,59,0.06), transparent 45%),
+      radial-gradient(ellipse at bottom right, rgba(111,122,82,0.08), transparent 50%),
+      var(--areia);
+    color:var(--tinta);
+    font-family:var(--font-body);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* textura de papel sutil via SVG noise embutido */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    opacity:0.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index:1000;
+  }
+
+  a{color:var(--laranja-escuro);}
+
+  /* ===== paw trail decoration ===== */
+  .paw-trail{
+    position:absolute; top:0; right:6%;
+    display:flex; flex-direction:column; gap:18px;
+    opacity:0.5;
+  }
+  .paw-trail svg{width:14px; height:14px; fill:var(--laranja);}
+  .paw-trail svg:nth-child(2){margin-left:16px; opacity:0.75;}
+  .paw-trail svg:nth-child(3){margin-left:32px; opacity:0.5;}
+
+  /* ===== HERO ===== */
+  header.hero{
+    position:relative;
+    padding:88px 24px 64px;
+    max-width:980px;
+    margin:0 auto;
+    text-align:left;
+    overflow:hidden;
+  }
+  .eyebrow{
+    font-family:var(--font-hand);
+    font-size:1.5rem;
+    color:var(--laranja-escuro);
+    display:inline-block;
+    transform:rotate(-2deg);
+    margin-bottom:6px;
+  }
+  h1.title{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(2.4rem, 5vw, 4rem);
+    line-height:1.02;
+    margin:0 0 22px;
+    letter-spacing:-0.01em;
+  }
+  h1.title em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--laranja-escuro);
+  }
+  .hero p.lead{
+    max-width:640px;
+    font-size:1.15rem;
+    color:var(--tinta-suave);
+    margin:0 0 34px;
+  }
+  .hero-meta{
+    display:flex; gap:28px; flex-wrap:wrap;
+    font-size:0.92rem; color:var(--tinta-suave);
+    border-top:1px solid var(--linha);
+    padding-top:18px;
+  }
+  .hero-meta strong{color:var(--tinta); display:block; font-family:var(--font-display); font-size:1.3rem;}
+
+  /* ===== NAV STEPS (sticky) ===== */
+  nav.stepnav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(251,247,238,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--linha);
+  }
+  nav.stepnav .inner{
+    max-width:980px; margin:0 auto;
+    display:flex; overflow-x:auto;
+    padding:0 24px;
+  }
+  nav.stepnav a{
+    flex:0 0 auto;
+    padding:14px 16px;
+    font-size:0.85rem;
+    text-decoration:none;
+    color:var(--tinta-suave);
+    white-space:nowrap;
+    border-bottom:2px solid transparent;
+  }
+  nav.stepnav a:hover{color:var(--tinta);}
+  nav.stepnav a .n{color:var(--laranja); font-weight:700; margin-right:4px;}
+
+  /* ===== MAIN LAYOUT ===== */
+  main{max-width:980px; margin:0 auto; padding:0 24px 120px;}
+
+  section.step{
+    position:relative;
+    padding:56px 0;
+    border-top:1px solid var(--linha);
+  }
+  section.step:first-of-type{border-top:none;}
+
+  .step-label{
+    display:flex; align-items:baseline; gap:14px;
+    margin-bottom:8px;
+  }
+  .step-num{
+    font-family:var(--font-display);
+    font-size:1rem;
+    color:var(--branco-papel);
+    background:var(--laranja);
+    width:30px; height:30px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    font-weight:700;
+  }
+  .step h2{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:1.9rem;
+    margin:0;
+  }
+  .step .desc{
+    color:var(--tinta-suave);
+    max-width:640px;
+    margin:14px 0 28px 44px;
+  }
+  .step-body{margin-left:44px;}
+
+  @media (max-width:640px){
+    .step .desc, .step-body{margin-left:0;}
+  }
+
+  /* ===== CARD ===== */
+  .card{
+    background:var(--branco-papel);
+    border:1px solid var(--linha);
+    border-radius:14px;
+    box-shadow:0 6px 20px var(--sombra);
+    padding:28px;
+  }
+
+  /* ===== FORM (cats) ===== */
+  .cat-count-row{
+    display:flex; align-items:center; gap:14px;
+    margin-bottom:24px;
+  }
+  .cat-count-row label{font-weight:600; font-size:0.95rem;}
+  select#catCount{
+    font-family:var(--font-body);
+    font-size:1rem;
+    padding:8px 12px;
+    border-radius:8px;
+    border:1px solid var(--linha);
+    background:var(--areia);
+    color:var(--tinta);
+  }
+
+  .cat-form{
+    display:grid;
+    gap:18px;
+  }
+  .cat-block{
+    border:1px dashed var(--linha);
+    border-radius:12px;
+    padding:18px 20px;
+    background:linear-gradient(180deg, rgba(193,103,59,0.03), transparent);
+  }
+  .cat-block .cat-title{
+    font-family:var(--font-hand);
+    font-size:1.4rem;
+    color:var(--laranja-escuro);
+    margin:0 0 12px;
+  }
+  .field-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-bottom:12px;
+  }
+  .field-row.full{grid-template-columns:1fr;}
+  @media (max-width:560px){ .field-row{grid-template-columns:1fr;} }
+
+  .field label{
+    display:block;
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--tinta-suave);
+    margin-bottom:5px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    font-family:var(--font-body);
+    font-size:0.95rem;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--linha);
+    background:#fff;
+    color:var(--tinta);
+    resize:vertical;
+  }
+  .field input:focus, .field textarea:focus, select:focus, button:focus-visible{
+    outline:2px solid var(--laranja);
+    outline-offset:1px;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:0.92rem;
+    padding:12px 20px;
+    border-radius:9px;
+    border:none;
+    cursor:pointer;
+    text-decoration:none;
+    transition:transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{
+    background:var(--laranja);
+    color:var(--branco-papel);
+    box-shadow:0 4px 14px rgba(193,103,59,0.35);
+  }
+  .btn-primary:hover{background:var(--laranja-escuro);}
+  .btn-ghost{
+    background:transparent;
+    color:var(--tinta);
+    border:1px solid var(--linha);
+  }
+  .btn-ghost:hover{border-color:var(--laranja);}
+  .btn-copy{
+    background:var(--areia-escura);
+    color:var(--tinta);
+    border:1px solid var(--linha);
+  }
+  .btn-copy:hover{background:var(--linha);}
+  .btn-copy.copied{background:var(--verde-pata); color:#fff; border-color:var(--verde-pata);}
+
+  .btn-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;}
+
+  /* ===== PROMPT OUTPUT ===== */
+  .prompt-box{
+    position:relative;
+    background:#fff;
+    border:1px solid var(--linha);
+    border-radius:12px;
+    padding:20px 20px 20px 22px;
+    margin-top:18px;
+  }
+  .prompt-box::before{
+    content:"";
+    position:absolute; left:0; top:12px; bottom:12px; width:3px;
+    background:var(--laranja);
+    border-radius:2px;
+  }
+  .prompt-box pre{
+    white-space:pre-wrap;
+    word-break:break-word;
+    font-family:'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size:0.83rem;
+    line-height:1.6;
+    color:var(--tinta);
+    margin:0;
+    max-height:340px;
+    overflow-y:auto;
+  }
+  .prompt-title{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:2px;
+  }
+  .prompt-title h3{
+    font-family:var(--font-display);
+    font-size:1.1rem;
+    margin:0 0 14px;
+  }
+
+  .hint{
+    font-size:0.85rem;
+    color:var(--verde-pata);
+    background:rgba(111,122,82,0.1);
+    border-radius:8px;
+    padding:10px 14px;
+    margin-top:14px;
+  }
+  .hint strong{color:var(--tinta);}
+
+  .checklist-note{
+    font-size:0.85rem;
+    color:var(--tinta-suave);
+    margin-top:10px;
+  }
+
+  /* ===== CHECKLIST ===== */
+  ul.checklist{list-style:none; padding:0; margin:0; display:grid; gap:10px;}
+  ul.checklist li{
+    display:flex; align-items:flex-start; gap:10px;
+    font-size:0.95rem;
+  }
+  ul.checklist input[type=checkbox]{
+    margin-top:3px;
+    width:18px; height:18px;
+    accent-color:var(--laranja);
+  }
+  ul.checklist li.done label{
+    text-decoration:line-through;
+    color:var(--tinta-suave);
+  }
+  #resetChecklist{margin-top:18px;}
+
+  /* ===== ADJUST EXAMPLE ===== */
+  .example-fix{
+    background:var(--areia-escura);
+    border-left:3px solid var(--verde-pata);
+    padding:12px 16px;
+    border-radius:8px;
+    font-size:0.9rem;
+    font-style:italic;
+    color:var(--tinta-suave);
+    margin-top:12px;
+  }
+
+  /* ===== FINAL FOOTER ===== */
+  footer{
+    text-align:center;
+    padding:50px 24px 70px;
+    color:var(--tinta-suave);
+    font-size:0.85rem;
+  }
+  footer .signature{
+    font-family:var(--font-hand);
+    font-size:1.6rem;
+    color:var(--laranja-escuro);
+    display:block;
+    margin-bottom:6px;
+  }
+
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--linha); border-radius:6px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="paw-trail" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><path d="M12 14c-3 0-6 2.5-6 5.5C6 21 7.5 22 9 22c1 0 1.8-.5 3-.5s2 .5 3 .5c1.5 0 3-1 3-2.5C18 16.5 15 14 12 14z"/><circle cx="6" cy="9" r="2"/><circle cx="10" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="18" cy="9" r="2"/></svg>
+    <svg viewBox="0 0 24 24"><path d="M12 14c-3 0-6 2.5-6 5.5C6 21 7.5 22 9 22c1 0 1.8-.5 3-.5s2 .5 3 .5c1.5 0 3-1 3-2.5C18 16.5 15 14 12 14z"/><circle cx="6" cy="9" r="2"/><circle cx="10" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="18" cy="9" r="2"/></svg>
+    <svg viewBox="0 0 24 24"><path d="M12 14c-3 0-6 2.5-6 5.5C6 21 7.5 22 9 22c1 0 1.8-.5 3-.5s2 .5 3 .5c1.5 0 3-1 3-2.5C18 16.5 15 14 12 14z"/><circle cx="6" cy="9" r="2"/><circle cx="10" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="18" cy="9" r="2"/></svg>
+  </div>
+  <span class="eyebrow">Tia Beca Catsitter</span>
+  <h1 class="title">Fábrica de capas<br><em>gato por gato</em>, sem dor de cabeça.</h1>
+  <p class="lead">Preencha os dados do atendimento, copie os prompts prontos e cole no ChatGPT. Em três passos você tem a capa aquarela do carrossel — com a cara de cada bichano certinha.</p>
+  <div class="hero-meta">
+    <div><strong>1–6</strong>gatos por atendimento</div>
+    <div><strong>2</strong>prompts, um preenche o outro</div>
+    <div><strong>1</strong>capa pronta pro Instagram</div>
+  </div>
+</header>
+
+<nav class="stepnav">
+  <div class="inner">
+    <a href="#etapa1"><span class="n">01</span>Dados do atendimento</a>
+    <a href="#etapa2"><span class="n">02</span>Prompt 1 — descrever os gatos</a>
+    <a href="#etapa3"><span class="n">03</span>Prompt 2 — gerar a imagem</a>
+    <a href="#etapa4"><span class="n">04</span>Finalizar</a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ETAPA 1 -->
+  <section class="step" id="etapa1">
+    <div class="step-label">
+      <span class="step-num">1</span>
+      <h2>Conte quem são os gatos de hoje</h2>
+    </div>
+    <p class="desc">Escolha quantos gatos tem esse atendimento e preencha nome, personalidade e — se tiver — alguma característica física especial (tipo "sem dentes" ou "orelha dobrada"). Isso monta o Prompt 1 sozinho lá embaixo.</p>
+
+    <div class="step-body">
+      <div class="card">
+        <div class="cat-count-row">
+          <label for="catCount">Quantos gatos?</label>
+          <select id="catCount">
+            <option value="1">1 gato</option>
+            <option value="2" selected>2 gatos</option>
+            <option value="3">3 gatos</option>
+            <option value="4">4 gatos</option>
+            <option value="5">5 gatos</option>
+            <option value="6">6 gatos</option>
+          </select>
+        </div>
+
+        <div class="cat-form" id="catForm"></div>
+
+        <div class="hint">
+          <strong>Não esqueça:</strong> tenha as fotos reais de cada gato salvas e prontas pra anexar no ChatGPT — elas são a referência visual em toda a conversa.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ETAPA 2 -->
+  <section class="step" id="etapa2">
+    <div class="step-label">
+      <span class="step-num">2</span>
+      <h2>Prompt 1 — peça pra IA descrever e montar o template</h2>
+    </div>
+    <p class="desc">Esse prompt olha as fotos e escreve a descrição física de cada gato, encaixando tudo no template da capa. Copie, abra o ChatGPT, anexe as fotos dos gatos e cole.</p>
+
+    <div class="step-body">
+      <div class="card">
+        <div class="prompt-title"><h3>Prompt 1 (com seus dados já dentro)</h3></div>
+        <div class="prompt-box">
+          <pre id="prompt1Output">Preencha os dados na Etapa 1 para gerar o prompt aqui.</pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-copy" id="copyPrompt1">Copiar Prompt 1</button>
+          <a class="btn btn-primary" href="https://chat.openai.com/" target="_blank" rel="noopener">Abrir ChatGPT ↗</a>
+        </div>
+        <div class="hint">
+          <strong>No ChatGPT:</strong> anexe as fotos de todos os gatos deste atendimento antes de colar o prompt, senão a IA não tem o que descrever.
+        </div>
+        <p class="checklist-note">O ChatGPT vai devolver o template preenchido em texto — isso é o seu <strong>Prompt 2</strong>. Revise rapidinho a descrição física de cada gato (principalmente as observações especiais) antes de seguir pra Etapa 3.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ETAPA 3 -->
+  <section class="step" id="etapa3">
+    <div class="step-label">
+      <span class="step-num">3</span>
+      <h2>Prompt 2 — gerar a imagem final</h2>
+    </div>
+    <p class="desc">Cole aqui o texto que o ChatGPT devolveu na etapa anterior (o template já preenchido). Depois copie e envie de novo, junto com as fotos originais, pra gerar a ilustração.</p>
+
+    <div class="step-body">
+      <div class="card">
+        <div class="field full">
+          <label for="prompt2Input">Cole aqui o resultado da Etapa 2</label>
+          <textarea id="prompt2Input" rows="8" placeholder="Cole o template preenchido que o ChatGPT devolveu..."></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-copy" id="copyPrompt2">Copiar Prompt 2</button>
+          <a class="btn btn-primary" href="https://chat.openai.com/" target="_blank" rel="noopener">Abrir ChatGPT ↗</a>
+        </div>
+        <div class="hint">
+          <strong>No ChatGPT:</strong> anexe de novo as fotos originais dos gatos junto com esse prompt colado, para a IA gerar a ilustração final.
+        </div>
+        <p class="checklist-note">Se algo sair errado (cor do olho, expressão, texto ilegível), não refaça tudo — peça um ajuste pontual:</p>
+        <div class="example-fix">"Ajuste apenas a cor dos olhos do gato Frajola para verde e deixe a etiqueta com o nome um pouco menor."</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ETAPA 4 -->
+  <section class="step" id="etapa4">
+    <div class="step-label">
+      <span class="step-num">4</span>
+      <h2>Finalizar a capa</h2>
+    </div>
+    <p class="desc">Últimos retoques antes de publicar. Marque conforme for fazendo — a lista some sozinha do jeito que você deixar.</p>
+
+    <div class="step-body">
+      <div class="card">
+        <ul class="checklist" id="checklist">
+          <li><input type="checkbox" id="c1"><label for="c1">Logo da Tia Beca aplicado no canto inferior direito</label></li>
+          <li><input type="checkbox" id="c2"><label for="c2">Capa definida como primeiro slide do carrossel</label></li>
+          <li><input type="checkbox" id="c3"><label for="c3">Slides seguintes com fotos reais do atendimento</label></li>
+          <li><input type="checkbox" id="c4"><label for="c4">Legenda escrita citando nomes e personalidades dos gatos</label></li>
+        </ul>
+        <button class="btn btn-ghost" id="resetChecklist">Recomeçar checklist</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span class="signature">até o próximo atendimento 🐾</span>
+  Fluxo interno de criação de capas — Tia Beca Catsitter
+</footer>
+
+<script>
+(function(){
+  const catCountSel = document.getElementById('catCount');
+  const catForm = document.getElementById('catForm');
+  const prompt1Output = document.getElementById('prompt1Output');
+  const copyPrompt1Btn = document.getElementById('copyPrompt1');
+  const prompt2Input = document.getElementById('prompt2Input');
+  const copyPrompt2Btn = document.getElementById('copyPrompt2');
+
+  const compositionRules = {
+    1: "1 gato: pode ocupar mais espaço central.",
+    2: "2 gatos: lado a lado, formato mais simples de equilibrar.",
+    3: "3-4 gatos: organizar em pequeno \"grupo aconchegante\" (alturas variadas, alguns deitados, um sentado atrás) em vez de fileira reta.",
+    4: "3-4 gatos: organizar em pequeno \"grupo aconchegante\" (alturas variadas, alguns deitados, um sentado atrás) em vez de fileira reta.",
+    5: "5-6 gatos: composição em duas camadas (alguns à frente, outros mais atrás/altos).",
+    6: "5-6 gatos: composição em duas camadas (alguns à frente, outros mais atrás/altos)."
+  };
+
+  function renderCatForm(){
+    const n = parseInt(catCountSel.value, 10);
+    catForm.innerHTML = '';
+    for(let i=1; i<=n; i++){
+      const block = document.createElement('div');
+      block.className = 'cat-block';
+      block.innerHTML = `
+        <p class="cat-title">Gato ${i}</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="nome${i}">Nome</label>
+            <input type="text" id="nome${i}" data-role="nome" placeholder="Ex: Frajola">
+          </div>
+          <div class="field">
+            <label for="pers${i}">Personalidade</label>
+            <input type="text" id="pers${i}" data-role="pers" placeholder="Ex: dorminhoco e carinhoso">
+          </div>
+        </div>
+        <div class="field-row full">
+          <div class="field">
+            <label for="obs${i}">Observação física especial (opcional)</label>
+            <input type="text" id="obs${i}" data-role="obs" placeholder="Ex: sem dentes, orelha dobrada...">
+          </div>
+        </div>
+      `;
+      catForm.appendChild(block);
+    }
+    attachLiveUpdate();
+    updatePrompt1();
+  }
+
+  function attachLiveUpdate(){
+    catForm.querySelectorAll('input').forEach(el=>{
+      el.addEventListener('input', updatePrompt1);
+    });
+  }
+
+  function collectCats(){
+    const n = parseInt(catCountSel.value, 10);
+    const cats = [];
+    for(let i=1; i<=n; i++){
+      const nome = document.getElementById('nome'+i)?.value.trim() || `[NOME DO GATO ${i}]`;
+      const pers = document.getElementById('pers'+i)?.value.trim() || `[PERSONALIDADE DO GATO ${i}]`;
+      const obs = document.getElementById('obs'+i)?.value.trim() || '';
+      cats.push({nome, pers, obs});
+    }
+    return cats;
+  }
+
+  function updatePrompt1(){
+    const n = parseInt(catCountSel.value, 10);
+    const cats = collectCats();
+
+    const infoLines = cats.map((c, idx) =>
+      `- Gato ${idx+1} — Nome: ${c.nome} | Personalidade: ${c.pers} | Observação física, se houver: ${c.obs || '(nenhuma)'}`
+    ).join('\n');
+
+    const rule = compositionRules[n] || compositionRules[6];
+
+    const prompt = `Você vai me ajudar a preencher um template de prompt para geração de imagem.
+
+Analise as fotos anexadas de cada gato e descreva fisicamente cada um com precisão (cor e padrão da pelagem, comprimento do pelo, formato do rosto, cor dos olhos, marcas distintivas). Não gere nenhuma imagem agora — apenas retorne o template abaixo preenchido em texto, pronto para eu usar em um próximo passo.
+
+Informações do atendimento:
+${infoLines}
+
+Preencha o template abaixo substituindo os colchetes, mantendo toda a estrutura e o texto fixo exatamente como está:
+
+---TEMPLATE---
+Crie uma ilustração digital estilo aquarela elegante e sofisticada (não cartoon infantil, não estilo kawaii), formato quadrado 4:5, para ser a capa de um carrossel do Instagram de uma cat sitter profissional chamada Tia Beca.
+
+Mostre ${n} gato(s), fiéis às fotos de referência anexadas. Descrição física de cada um:
+[DESCRIÇÃO FÍSICA DETALHADA DE CADA GATO, UM POR LINHA, COM NOME]
+
+Disponha os gatos lado a lado ou em pequenos grupos naturais, mantendo espaço visual equilibrado entre eles, todos voltados de frente ou levemente de perfil para a câmera, em poses relaxadas e afetuosas.
+
+Para cada gato, inclua:
+- Uma expressão facial que reflita sua personalidade descrita abaixo.
+- Uma etiqueta pequena e elegante abaixo do gato, em fonte manuscrita arredondada, cor marrom escura, com o nome do gato.
+
+Lista de gatos e personalidades:
+${cats.map(c => `[GATO — NOME: ${c.nome} | PERSONALIDADE: ${c.pers}]`).join('\n')}
+
+Fundo minimalista em tom bege/areia claro, com leve textura de aquarela, sem elementos que poluam a cena. Paleta de cores terrosa, com laranja queimado suave como cor de destaque (nunca laranja vibrante/saturado).
+
+Deixe um espaço limpo e vazio no canto inferior direito, sem nenhum elemento, reservado para inserção posterior do logo.
+
+o estilo geral deve parecer uma cena real com toque artístico refinado, mantendo o tom acolhedor, humano e profissional da marca. Evite qualquer aparência de meme genérico ou estética "gerada por IA" óbvia.
+---FIM DO TEMPLATE---
+
+Regra de composição para ${n} gato(s): ${rule}
+
+Aplique essa regra de composição no preenchimento do template.`;
+
+    prompt1Output.textContent = prompt;
+  }
+
+  function copyToClipboard(text, btn){
+    navigator.clipboard.writeText(text).then(()=>{
+      const original = btn.textContent;
+      btn.textContent = 'Copiado ✓';
+      btn.classList.add('copied');
+      setTimeout(()=>{ btn.textContent = original; btn.classList.remove('copied'); }, 1800);
+    }).catch(()=>{
+      alert('Não consegui copiar automaticamente. Selecione o texto e copie manualmente.');
+    });
+  }
+
+  copyPrompt1Btn.addEventListener('click', ()=> copyToClipboard(prompt1Output.textContent, copyPrompt1Btn));
+  copyPrompt2Btn.addEventListener('click', ()=>{
+    const text = prompt2Input.value.trim();
+    if(!text){
+      alert('Cole primeiro o texto que o ChatGPT devolveu na Etapa 2.');
+      return;
+    }
+    copyToClipboard(text, copyPrompt2Btn);
+  });
+
+  catCountSel.addEventListener('change', renderCatForm);
+  renderCatForm();
+
+  // checklist visual state
+  document.querySelectorAll('#checklist input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      cb.closest('li').classList.toggle('done', cb.checked);
+    });
+  });
+  document.getElementById('resetChecklist').addEventListener('click', ()=>{
+    document.querySelectorAll('#checklist input[type=checkbox]').forEach(cb=>{
+      cb.checked = false;
+      cb.closest('li').classList.remove('done');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
